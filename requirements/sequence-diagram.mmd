@@ -1,0 +1,200 @@
+sequenceDiagram
+    autonumber
+
+    actor User
+    participant API
+    participant UserRepository
+    participant AnimeAPI as Third-Party Anime API
+    participant AnimeRepository
+    participant LibraryRepository
+    participant GroupRepository
+
+    %% AUTHENTICATION
+
+    rect rgb(240, 240, 255)
+        Note over User,UserRepository: Authentication & Account
+
+        User->>API: register(username, email, password)
+        API->>UserRepository: getUserByEmail(email)
+        UserRepository-->>API: user / null
+
+        alt Email already registered
+            API-->>User: Registration failed
+        else Email available
+            API->>UserRepository: saveUser(user)
+            UserRepository-->>API: savedUser
+            API-->>User: Registration successful
+        end
+
+        User->>API: login(email, password)
+        API->>UserRepository: getUserByEmail(email)
+        UserRepository-->>API: user
+
+        alt Invalid credentials
+            API-->>User: Login failed
+        else Valid credentials
+            API-->>User: Login successful + token
+        end
+
+        User->>API: logout()
+        API-->>User: Logout successful
+
+        User->>API: getProfile()
+        API->>UserRepository: getUserByID(userID)
+        UserRepository-->>API: user
+        API-->>User: Profile data
+
+        User->>API: updateProfile(data)
+        API->>UserRepository: updateUser(userID, data)
+        UserRepository-->>API: updatedUser
+        API-->>User: Profile updated
+    end
+
+
+    %% ANIME DISCOVERY
+
+    rect rgb(240, 255, 240)
+        Note over User,AnimeAPI: Anime Discovery & Advanced Search
+
+        User->>API: searchAnime(query)
+        API->>AnimeAPI: searchAnime(query)
+        AnimeAPI-->>API: searchResults
+        API-->>User: Anime search results
+
+        User->>API: advancedSearch(filters)
+        API->>AnimeAPI: searchAnime(filters)
+        AnimeAPI-->>API: filteredResults
+        API-->>User: Advanced search results
+
+        User->>API: getAnimeDetail(externalID)
+        API->>AnimeAPI: getAnimeDetail(externalID)
+        AnimeAPI-->>API: animeDetail
+        API-->>User: Anime detail
+    end
+
+
+    %% ADD ANIME TO LIBRARY
+    rect rgb(255, 248, 235)
+        Note over User,LibraryRepository: Add Anime to Personal Library
+
+        User->>API: addToLibrary(externalID)
+
+        API->>AnimeRepository: getByExternalID(externalID)
+        AnimeRepository-->>API: anime / null
+
+        alt Anime already exists locally
+            API->>LibraryRepository: getLibraryAnime(userID, animeID)
+            LibraryRepository-->>API: libraryAnime / null
+
+            alt Anime already in user's library
+                API-->>User: Anime already in library
+            else Anime not in user's library
+                API->>LibraryRepository: createLibraryAnime(userID, animeID)
+                LibraryRepository-->>API: libraryAnime
+                API-->>User: Anime added to library
+            end
+
+        else Anime does not exist locally
+            API->>AnimeAPI: getAnimeDetail(externalID)
+            AnimeAPI-->>API: animeDetail
+
+            API->>AnimeRepository: saveAnime(animeDetail)
+            AnimeRepository-->>API: anime
+
+            API->>LibraryRepository: createLibraryAnime(userID, animeID)
+            LibraryRepository-->>API: libraryAnime
+
+            API-->>User: Anime added to library
+        end
+    end
+
+
+    %% PERSONAL LIBRARY
+
+    rect rgb(255, 240, 240)
+        Note over User,LibraryRepository: Personal Anime Library
+
+        User->>API: getMyLibrary()
+        API->>LibraryRepository: getLibraryByUserID(userID)
+        LibraryRepository-->>API: library
+        API-->>User: Personal library
+
+        User->>API: getLibraryAnime(libraryAnimeID)
+        API->>LibraryRepository: getLibraryAnimeByID(libraryAnimeID, userID)
+        LibraryRepository-->>API: libraryAnime
+        API-->>User: Library anime detail
+
+        User->>API: updateStatus(libraryAnimeID, status)
+        API->>LibraryRepository: updateStatus(libraryAnimeID, userID, status)
+        LibraryRepository-->>API: updatedLibraryAnime
+        API-->>User: Status updated
+
+        User->>API: updateProgress(libraryAnimeID, episode)
+        API->>LibraryRepository: updateProgress(libraryAnimeID, userID, episode)
+        LibraryRepository-->>API: updatedLibraryAnime
+        API-->>User: Progress updated
+
+        User->>API: updateRating(libraryAnimeID, rating)
+        API->>LibraryRepository: updateRating(libraryAnimeID, userID, rating)
+        LibraryRepository-->>API: updatedLibraryAnime
+        API-->>User: Rating updated
+
+        User->>API: updateNotes(libraryAnimeID, notes)
+        API->>LibraryRepository: updateNotes(libraryAnimeID, userID, notes)
+        LibraryRepository-->>API: updatedLibraryAnime
+        API-->>User: Notes updated
+
+        User->>API: removeFromLibrary(libraryAnimeID)
+        API->>LibraryRepository: deleteLibraryAnime(libraryAnimeID, userID)
+        LibraryRepository-->>API: deleted
+        API-->>User: Anime removed from library
+    end
+
+
+    %% GROUP / COLLECTION
+
+    rect rgb(245, 240, 255)
+        Note over User,GroupRepository: Anime Group / Collection
+
+        User->>API: createGroup(name, description)
+        API->>GroupRepository: createGroup(userID, name, description)
+        GroupRepository-->>API: group
+        API-->>User: Group created
+
+        User->>API: getGroups()
+        API->>GroupRepository: getGroupsByUserID(userID)
+        GroupRepository-->>API: groups
+        API-->>User: My groups
+
+        User->>API: getGroup(groupID)
+        API->>GroupRepository: getGroupByID(groupID, userID)
+        GroupRepository-->>API: group
+        API-->>User: Group detail
+
+        User->>API: updateGroup(groupID, data)
+        API->>GroupRepository: updateGroup(groupID, userID, data)
+        GroupRepository-->>API: updatedGroup
+        API-->>User: Group updated
+
+        User->>API: deleteGroup(groupID)
+        API->>GroupRepository: deleteGroup(groupID, userID)
+        GroupRepository-->>API: deleted
+        API-->>User: Group deleted
+
+        User->>API: addAnimeToGroup(groupID, libraryAnimeID)
+        API->>LibraryRepository: getLibraryAnimeByID(libraryAnimeID, userID)
+        LibraryRepository-->>API: libraryAnime
+
+        alt Anime belongs to user
+            API->>GroupRepository: addAnimeToGroup(groupID, libraryAnimeID)
+            GroupRepository-->>API: groupLibraryAnime
+            API-->>User: Anime added to group
+        else Anime does not belong to user
+            API-->>User: Unauthorized
+        end
+
+        User->>API: removeAnimeFromGroup(groupID, libraryAnimeID)
+        API->>GroupRepository: removeAnimeFromGroup(groupID, libraryAnimeID, userID)
+        GroupRepository-->>API: removed
+        API-->>User: Anime removed from group
+    end
