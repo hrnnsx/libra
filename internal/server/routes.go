@@ -32,8 +32,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	}
 
 	// user
-	userRole := protected.Group("/users")
-	user := userRole.Use(middleware.AuthMiddleware())
+	user := protected.Group("/users")
+	user.Use(middleware.AuthMiddleware())
 	{
 		user.GET("/me", s.userHandler.GetProfile)
 	}
