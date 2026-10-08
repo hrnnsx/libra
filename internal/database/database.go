@@ -11,10 +11,15 @@ import (
 
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 // Service represents a service that interacts with a database.
 type Service interface {
+	// gorm
+	GORM() *gorm.DB
+
 	// Health returns a map of health status information.
 	// The keys and values in the map are service-specific.
 	Health() map[string]string
@@ -25,7 +30,8 @@ type Service interface {
 }
 
 type service struct {
-	db *sql.DB
+	db  *sql.DB
+	gdb *gorm.DB
 }
 
 var (
@@ -48,10 +54,24 @@ func New() Service {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// gorm
+	gdb, err := gorm.Open(postgres.New(postgres.Config{
+		Conn: db,
+	}), &gorm.Config{})
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	dbInstance = &service{
-		db: db,
+		db:  db,
+		gdb: gdb,
 	}
 	return dbInstance
+}
+
+func (s *service) GORM() *gorm.DB {
+	return s.gdb
 }
 
 // Health checks the health of the database connection by pinging the database.
