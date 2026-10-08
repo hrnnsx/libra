@@ -23,6 +23,7 @@ Versi awal (MVP) sistem mencakup:
 -   Status dan progress menonton
 -   Group/collection anime
 -   Integrasi Third-Party Anime API
+-   Integrasi Anime Identification API
 -   Privacy pada library dan group pengguna
 
 ------------------------------------------------------------------------
@@ -42,11 +43,18 @@ User adalah pengguna terdaftar yang dapat:
 
 ### 2.2 Third-Party Anime API
 
-Third-Party Anime API adalah sistem eksternal yang menyediakan informasi
-dan pencarian anime.
+Third-Party Anime API adalah sistem eksternal yang menyediakan informasi,
+pencarian, dan detail anime.
 
 Sistem digunakan sebagai sumber data anime ketika user melakukan
 discovery/search dan ketika sebuah anime akan ditambahkan ke library.
+
+### 2.3 Anime Identification API
+
+Anime Identification API adalah sistem eksternal yang digunakan untuk
+mengidentifikasi anime berdasarkan screenshot atau gambar sebuah scene.
+
+Sistem digunakan ketika user ingin mencari anime berdasarkan gambar.
 
 ------------------------------------------------------------------------
 
@@ -143,6 +151,7 @@ Third-Party API digunakan sebagai sumber data untuk:
 2.  Advanced search/filter
 3.  Anime detail
 4.  Pengambilan data anime ketika user menambahkan anime ke library
+5. Identifikasi anime berdasarkan screenshot sebuah scene
 
 Sistem tidak menyimpan seluruh katalog anime dari Third-Party API.
 
@@ -445,6 +454,14 @@ anime dari tabel anime.
 Anime hanya dapat dihapus secara fisik apabila tidak lagi digunakan dan
 kebijakan data mengizinkannya.
 
+### BR-09 --- Anime Identification Does Not Persist Data
+
+Hasil identifikasi anime dari Anime Identification API tidak otomatis
+disimpan ke database lokal.
+
+Hasil identifikasi hanya digunakan untuk menampilkan informasi kepada user
+dan dapat digunakan sebagai referensi untuk menemukan anime.
+
 ------------------------------------------------------------------------
 
 ## 6. High-Level User Flow
@@ -506,6 +523,21 @@ Add to Group
   ↓
 Group Updated
 ```
+
+### 6.5 Identify Anime from Screenshot
+
+```text
+User
+  ↓
+Upload / Provide Image URL
+  ↓
+Our API
+  ↓
+Anime Identification API
+  ↓
+Identification Result
+  ↓
+Anime / Episode / Timestamp
 
 ------------------------------------------------------------------------
 

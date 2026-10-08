@@ -5,6 +5,7 @@ sequenceDiagram
     participant API
     participant UserRepository
     participant AnimeAPI as Third-Party Anime API
+    participant IdentificationAPI as Anime Identification API
     participant AnimeRepository
     participant LibraryRepository
     participant GroupRepository
@@ -73,7 +74,20 @@ sequenceDiagram
     end
 
 
+    %% ANIME IDENTIFICATION
+
+    rect rgb(240, 250, 255)
+        Note over User,IdentificationAPI: Anime Identification
+
+        User->>API: identifyAnime(imageURL)
+        API->>IdentificationAPI: searchByImage(imageURL)
+        IdentificationAPI-->>API: identificationResults
+        API-->>User: Anime identification result
+    end
+
+
     %% ADD ANIME TO LIBRARY
+
     rect rgb(255, 248, 235)
         Note over User,LibraryRepository: Add Anime to Personal Library
 
