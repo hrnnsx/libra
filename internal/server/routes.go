@@ -54,6 +54,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	library.Use(middleware.AuthMiddleware())
 	{
 		library.POST("/animes", s.libraryHandler.AddAnime)
+		library.GET("/animes", s.libraryHandler.GetLibrary)
 	}
 
 	return r

@@ -20,6 +20,11 @@ type LibraryService interface {
 		userID int64,
 		externalID string,
 	) (*model.LibraryAnime, error)
+
+	GetLibrary(
+		ctx context.Context,
+		userID int64,
+	) ([]model.LibraryAnime, error)
 }
 
 type libraryService struct {
@@ -46,25 +51,26 @@ func (s *libraryService) AddAnime(
 	externalID string,
 ) (*model.LibraryAnime, error) {
 
-	// Pastikan external ID valid.
 	id, err := strconv.Atoi(externalID)
 	if err != nil {
 		return nil, ErrAnimeNotFound
 	}
 
-	// Cek apakah anime sudah ada di database lokal.
-	anime, err := s.animeRepository.FindByExternalID(externalID)
+	anime, err := s.animeRepository.FindByExternalID(
+		externalID,
+	)
 
-	if err != nil && !errors.Is(err, repository.ErrAnimeNotFound) {
+	if err != nil &&
+		!errors.Is(err, repository.ErrAnimeNotFound) {
 		return nil, err
 	}
 
-	// Kalau belum ada, ambil dari AniList.
 	if errors.Is(err, repository.ErrAnimeNotFound) {
 		externalAnime, err := s.anilistClient.GetAnime(
 			ctx,
 			id,
 		)
+
 		if err != nil {
 			return nil, ErrAnimeNotFound
 		}
@@ -84,7 +90,6 @@ func (s *libraryService) AddAnime(
 		}
 	}
 
-	// Cek apakah anime sudah ada di library user.
 	_, err = s.libraryAnimeRepository.FindByUserAndAnime(
 		userID,
 		anime.ID,
@@ -94,11 +99,13 @@ func (s *libraryService) AddAnime(
 		return nil, ErrLibraryAnimeExists
 	}
 
-	if !errors.Is(err, repository.ErrLibraryAnimeNotFound) {
+	if !errors.Is(
+		err,
+		repository.ErrLibraryAnimeNotFound,
+	) {
 		return nil, err
 	}
 
-	// Buat entry library.
 	libraryAnime := &model.LibraryAnime{
 		UserID:         userID,
 		AnimeID:        anime.ID,
@@ -113,6 +120,14 @@ func (s *libraryService) AddAnime(
 	}
 
 	return libraryAnime, nil
+}
+
+func (s *libraryService) GetLibrary(
+	ctx context.Context,
+	userID int64,
+) ([]model.LibraryAnime, error) {
+
+	return s.libraryAnimeRepository.FindByUser(userID)
 }
 
 func getAnimeTitle(anime *anilist.Anime) string {

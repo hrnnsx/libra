@@ -100,3 +100,48 @@ func (h *LibraryHandler) AddAnime(c *gin.Context) {
 		"library_anime": result,
 	})
 }
+
+func (h *LibraryHandler) GetLibrary(c *gin.Context) {
+	userID, exists := c.Get("user_id")
+
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": gin.H{
+				"code":    "INVALID_TOKEN",
+				"message": "invalid user context",
+			},
+		})
+		return
+	}
+
+	userIDInt64, ok := userID.(int64)
+
+	if !ok {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"error": gin.H{
+				"code":    "INVALID_TOKEN",
+				"message": "invalid user context",
+			},
+		})
+		return
+	}
+
+	result, err := h.service.GetLibrary(
+		c.Request.Context(),
+		userIDInt64,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": gin.H{
+				"code":    "INTERNAL_SERVER_ERROR",
+				"message": "failed to fetch library",
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": result,
+	})
+}

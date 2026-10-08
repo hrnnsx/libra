@@ -16,6 +16,7 @@ type LibraryAnime struct {
 	ID             int64      `gorm:"primaryKey" json:"id"`
 	UserID         int64      `gorm:"column:user_id;not null" json:"user_id"`
 	AnimeID        int64      `gorm:"column:anime_id;not null" json:"anime_id"`
+	Anime          Anime      `gorm:"foreignKey:AnimeID" json:"anime"`
 	Status         string     `gorm:"type:varchar(30);not null" json:"status"`
 	CurrentEpisode int        `gorm:"column:current_episode;not null" json:"current_episode"`
 	Rating         *float64   `gorm:"type:decimal(3,1)" json:"rating,omitempty"`
@@ -26,10 +27,11 @@ type LibraryAnime struct {
 	UpdatedAt      time.Time  `json:"updated_at"`
 }
 
-func (Anime) TableName() string {
-	return "anime"
-}
-
+// efek nggak pake majemuk di schema database gini nih...
 func (LibraryAnime) TableName() string {
 	return "library_anime"
+}
+
+func (Anime) TableName() string {
+	return "anime"
 }
