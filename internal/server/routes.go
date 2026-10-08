@@ -61,6 +61,18 @@ func (s *Server) RegisterRoutes() http.Handler {
 		library.DELETE("/:id", s.libraryHandler.DeleteAnime)
 	}
 
+	// groups
+	groups := r.Group("/me/groups")
+	groups.Use(middleware.AuthMiddleware())
+	{
+		groups.POST("", s.groupHandler.CreateGroup)
+		groups.GET("", s.groupHandler.GetGroups)
+
+		groups.GET("/:id", s.groupHandler.GetGroup)
+		groups.PATCH("/:id", s.groupHandler.UpdateGroup)
+		groups.DELETE("/:id", s.groupHandler.DeleteGroup)
+	}
+
 	return r
 }
 

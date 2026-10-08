@@ -19,7 +19,7 @@ API Specification
 │   └── GET /animes/:external_id
 │
 ├── 7. Anime Identification
-│   └── POST /animes/identify
+│   └── POST /animes/identify -- undone
 │
 ├── 8. Personal Library
 │   ├── POST /me/library
