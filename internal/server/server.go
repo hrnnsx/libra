@@ -21,6 +21,7 @@ type Server struct {
 
 	// handler
 	authHandler *handler.AuthHandler
+	userHandler *handler.UserHandler
 }
 
 func NewServer() *http.Server {
@@ -33,14 +34,18 @@ func NewServer() *http.Server {
 
 	// service
 	authService := service.NewAuthService(userRepository)
+	userService := service.NewUserService(userRepository)
 
 	// handler
 	authHandler := handler.NewAuthHandler(authService)
+	userHandler := handler.NewUserHandler(userService)
 
 	newServer := &Server{
-		port:        port,
-		db:          db,
+		port: port,
+		db:   db,
+
 		authHandler: authHandler,
+		userHandler: userHandler,
 	}
 
 	// Declare Server config

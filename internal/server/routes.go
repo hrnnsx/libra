@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/hrnnsx/libra/internal/middleware"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -21,6 +22,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 	r.GET("/", s.HelloWorldHandler)
 	r.GET("/health", s.healthHandler)
 
+	protected := r.Group("")
+
 	// auth
 	auth := r.Group("/auth")
 	{
@@ -29,6 +32,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 	}
 
 	// user
+	userRole := protected.Group("/users")
+	user := userRole.Use(middleware.AuthMiddleware())
+	{
+		user.GET("/me", s.userHandler.GetProfile)
+	}
 
 	// discovery
 

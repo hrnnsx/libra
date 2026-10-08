@@ -10,8 +10,8 @@ API Specification
 │   └── POST /auth/logout
 │
 ├── 5. User Profile
-│   ├── GET /me
-│   └── PATCH /me
+│   ├── GET users/me
+│   └── PATCH users/me
 │
 ├── 6. Anime Discovery
 │   ├── GET /animes/search
