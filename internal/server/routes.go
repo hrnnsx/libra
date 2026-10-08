@@ -36,6 +36,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 	user.Use(middleware.AuthMiddleware())
 	{
 		user.GET("/me", s.userHandler.GetProfile)
+		user.PATCH("/me", s.userHandler.UpdateProfile)
 	}
 
 	// discovery

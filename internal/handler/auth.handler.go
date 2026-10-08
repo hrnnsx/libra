@@ -106,7 +106,7 @@ func (h *AuthHandler) Register(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, AuthResponse{
-		User:  toUserResponse(user),
+		User:  toAuthResponse(user),
 		Token: token,
 	})
 }
@@ -161,12 +161,12 @@ func (h *AuthHandler) Login(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, AuthResponse{
-		User:  toUserResponse(user),
+		User:  toAuthResponse(user),
 		Token: token,
 	})
 }
 
-func toUserResponse(user *model.User) UserResponse {
+func toAuthResponse(user *model.User) UserResponse {
 	return UserResponse{
 		ID:        user.ID,
 		Username:  user.Username,
