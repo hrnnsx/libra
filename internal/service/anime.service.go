@@ -93,14 +93,39 @@ type AnimeIdentificationListResponse struct {
 	Data []AnimeIdentificationResponse `json:"data"`
 }
 
+type AniListClient interface {
+	BrowseAnime(
+		ctx context.Context,
+		page int,
+		perPage int,
+	) (*anilist.AnimePage, error)
+
+	SearchAnime(
+		ctx context.Context,
+		params anilist.SearchParams,
+	) (*anilist.AnimePage, error)
+
+	GetAnime(
+		ctx context.Context,
+		id int,
+	) (*anilist.Anime, error)
+}
+
+type TraceMoeClient interface {
+	Search(
+		ctx context.Context,
+		imageURL string,
+	) (*tracemoe.SearchResponse, error)
+}
+
 type animeService struct {
-	anilistClient  *anilist.Client
-	tracemoeClient *tracemoe.Client
+	anilistClient  AniListClient
+	tracemoeClient TraceMoeClient
 }
 
 func NewAnimeService(
-	anilistClient *anilist.Client,
-	tracemoeClient *tracemoe.Client,
+	anilistClient AniListClient,
+	tracemoeClient TraceMoeClient,
 ) AnimeService {
 	return &animeService{
 		anilistClient:  anilistClient,
