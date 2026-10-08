@@ -39,7 +39,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 		user.PATCH("/me", s.userHandler.UpdateProfile)
 	}
 
-	// discovery
+	// anime
+	animes := r.Group("/animes")
+	{
+		animes.GET("", s.animeHandler.BrowseAnime)
+		animes.GET("/search", s.animeHandler.SearchAnime)
+		animes.GET("/:external_id", s.animeHandler.GetAnime)
+	}
 
 	return r
 }

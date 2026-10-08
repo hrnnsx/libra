@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 
+	"github.com/hrnnsx/libra/external/anilist"
 	"github.com/hrnnsx/libra/internal/database"
 	"github.com/hrnnsx/libra/internal/handler"
 	"github.com/hrnnsx/libra/internal/repository"
@@ -20,14 +21,18 @@ type Server struct {
 	db   database.Service
 
 	// handler
-	authHandler *handler.AuthHandler
-	userHandler *handler.UserHandler
+	authHandler  *handler.AuthHandler
+	userHandler  *handler.UserHandler
+	animeHandler *handler.AnimeHandler
 }
 
 func NewServer() *http.Server {
 	port, _ := strconv.Atoi(os.Getenv("PORT"))
 
 	db := database.New()
+
+	// client
+	anilistClient := anilist.NewClient()
 
 	// repository
 	userRepository := repository.NewUserRepository(db.GORM())
@@ -36,16 +41,21 @@ func NewServer() *http.Server {
 	authService := service.NewAuthService(userRepository)
 	userService := service.NewUserService(userRepository)
 
+	animeService := service.NewAnimeService(anilistClient)
+
 	// handler
 	authHandler := handler.NewAuthHandler(authService)
 	userHandler := handler.NewUserHandler(userService)
+
+	animeHandler := handler.NewAnimeHandler(animeService)
 
 	newServer := &Server{
 		port: port,
 		db:   db,
 
-		authHandler: authHandler,
-		userHandler: userHandler,
+		authHandler:  authHandler,
+		userHandler:  userHandler,
+		animeHandler: animeHandler,
 	}
 
 	// Declare Server config
