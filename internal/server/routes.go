@@ -18,6 +18,8 @@ func (s *Server) RegisterRoutes() http.Handler {
 		AllowCredentials: true, // Enable cookies/auth
 	}))
 
+	//* NOTES: ada kemungkinan untuk penambahan role, jadi sementara menggunakan multiple routing chains
+
 	// health
 	r.GET("/", s.HelloWorldHandler)
 	r.GET("/health", s.healthHandler)
@@ -45,6 +47,13 @@ func (s *Server) RegisterRoutes() http.Handler {
 		animes.GET("", s.animeHandler.BrowseAnime)
 		animes.GET("/search", s.animeHandler.SearchAnime)
 		animes.GET("/:external_id", s.animeHandler.GetAnime)
+	}
+
+	// library
+	library := r.Group("/library")
+	library.Use(middleware.AuthMiddleware())
+	{
+		library.POST("/animes", s.libraryHandler.AddAnime)
 	}
 
 	return r

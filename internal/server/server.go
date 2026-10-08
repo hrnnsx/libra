@@ -21,9 +21,10 @@ type Server struct {
 	db   database.Service
 
 	// handler
-	authHandler  *handler.AuthHandler
-	userHandler  *handler.UserHandler
-	animeHandler *handler.AnimeHandler
+	authHandler    *handler.AuthHandler
+	userHandler    *handler.UserHandler
+	animeHandler   *handler.AnimeHandler
+	libraryHandler *handler.LibraryHandler
 }
 
 func NewServer() *http.Server {
@@ -36,26 +37,31 @@ func NewServer() *http.Server {
 
 	// repository
 	userRepository := repository.NewUserRepository(db.GORM())
+	animeRepository := repository.NewAnimeRepository(db.GORM())
+	libraryAnimeRepository := repository.NewLibraryAnimeRepository(db.GORM())
 
 	// service
 	authService := service.NewAuthService(userRepository)
 	userService := service.NewUserService(userRepository)
 
 	animeService := service.NewAnimeService(anilistClient)
+	libraryService := service.NewLibraryService(animeRepository, libraryAnimeRepository, anilistClient)
 
 	// handler
 	authHandler := handler.NewAuthHandler(authService)
 	userHandler := handler.NewUserHandler(userService)
 
 	animeHandler := handler.NewAnimeHandler(animeService)
+	libraryHandler := handler.NewLibraryHandler(libraryService)
 
 	newServer := &Server{
 		port: port,
 		db:   db,
 
-		authHandler:  authHandler,
-		userHandler:  userHandler,
-		animeHandler: animeHandler,
+		authHandler:    authHandler,
+		userHandler:    userHandler,
+		animeHandler:   animeHandler,
+		libraryHandler: libraryHandler,
 	}
 
 	// Declare Server config
