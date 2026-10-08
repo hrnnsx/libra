@@ -127,6 +127,38 @@ func (h *AnimeHandler) SearchAnime(c *gin.Context) {
 	c.JSON(http.StatusOK, result)
 }
 
+func (h *AnimeHandler) IdentifyAnime(c *gin.Context) {
+	var request struct {
+		URL string `json:"url" binding:"required,url"`
+	}
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": gin.H{
+				"code":    "INVALID_REQUEST",
+				"message": "valid image url is required",
+			},
+		})
+		return
+	}
+
+	result, err := h.service.IdentifyAnime(
+		c.Request.Context(),
+		request.URL,
+	)
+	if err != nil {
+		c.JSON(http.StatusBadGateway, gin.H{
+			"error": gin.H{
+				"code":    "EXTERNAL_API_ERROR",
+				"message": "failed to identify anime",
+			},
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, result)
+}
+
 func (h *AnimeHandler) GetAnime(c *gin.Context) {
 	externalID := c.Param("external_id")
 

@@ -10,6 +10,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 
 	"github.com/hrnnsx/libra/external/anilist"
+	"github.com/hrnnsx/libra/external/tracemoe"
 	"github.com/hrnnsx/libra/internal/database"
 	"github.com/hrnnsx/libra/internal/handler"
 	"github.com/hrnnsx/libra/internal/repository"
@@ -21,11 +22,12 @@ type Server struct {
 	db   database.Service
 
 	// handler
-	authHandler    *handler.AuthHandler
-	userHandler    *handler.UserHandler
-	animeHandler   *handler.AnimeHandler
-	libraryHandler *handler.LibraryHandler
-	groupHandler   *handler.GroupHandler
+	authHandler              *handler.AuthHandler
+	userHandler              *handler.UserHandler
+	animeHandler             *handler.AnimeHandler
+	libraryHandler           *handler.LibraryHandler
+	groupHandler             *handler.GroupHandler
+	groupLibraryAnimeHandler *handler.GroupLibraryAnimeHandler
 }
 
 func NewServer() *http.Server {
@@ -35,6 +37,7 @@ func NewServer() *http.Server {
 
 	// client
 	anilistClient := anilist.NewClient()
+	tracemoeClient := tracemoe.NewClient()
 
 	// repository
 	userRepository := repository.NewUserRepository(db.GORM())
@@ -42,14 +45,16 @@ func NewServer() *http.Server {
 	animeRepository := repository.NewAnimeRepository(db.GORM())
 	libraryAnimeRepository := repository.NewLibraryAnimeRepository(db.GORM())
 	groupRepository := repository.NewGroupRepository(db.GORM())
+	groupLibraryAnimeRepository := repository.NewGroupLibraryAnimeRepository(db.GORM())
 
 	// service
 	authService := service.NewAuthService(userRepository)
 	userService := service.NewUserService(userRepository)
 
-	animeService := service.NewAnimeService(anilistClient)
+	animeService := service.NewAnimeService(anilistClient, tracemoeClient)
 	libraryService := service.NewLibraryService(animeRepository, libraryAnimeRepository, anilistClient)
 	groupService := service.NewGroupService(groupRepository)
+	groupLibraryAnimeService := service.NewGroupLibraryAnimeService(groupRepository, libraryAnimeRepository, groupLibraryAnimeRepository)
 
 	// handler
 	authHandler := handler.NewAuthHandler(authService)
@@ -58,16 +63,18 @@ func NewServer() *http.Server {
 	animeHandler := handler.NewAnimeHandler(animeService)
 	libraryHandler := handler.NewLibraryHandler(libraryService)
 	groupHandler := handler.NewGroupHandler(groupService)
+	groupLibraryAnimeHandler := handler.NewGroupLibraryAnimeHandler(groupLibraryAnimeService)
 
 	newServer := &Server{
 		port: port,
 		db:   db,
 
-		authHandler:    authHandler,
-		userHandler:    userHandler,
-		animeHandler:   animeHandler,
-		libraryHandler: libraryHandler,
-		groupHandler:   groupHandler,
+		authHandler:              authHandler,
+		userHandler:              userHandler,
+		animeHandler:             animeHandler,
+		libraryHandler:           libraryHandler,
+		groupHandler:             groupHandler,
+		groupLibraryAnimeHandler: groupLibraryAnimeHandler,
 	}
 
 	// Declare Server config

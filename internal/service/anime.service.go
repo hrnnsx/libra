@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/hrnnsx/libra/external/anilist"
+	"github.com/hrnnsx/libra/external/tracemoe"
 )
 
 var ErrAnimeNotFound = errors.New("anime not found")
@@ -26,6 +27,11 @@ type AnimeService interface {
 		ctx context.Context,
 		externalID string,
 	) (*AnimeResponse, error)
+
+	IdentifyAnime(
+		ctx context.Context,
+		imageURL string,
+	) (*AnimeIdentificationListResponse, error)
 }
 
 type AnimeSearchParams struct {
@@ -72,13 +78,33 @@ type Pagination struct {
 	Total       int  `json:"total"`
 }
 
-type animeService struct {
-	anilistClient *anilist.Client
+type AnimeIdentificationResponse struct {
+	AnilistID  int     `json:"anilist_id"`
+	Filename   string  `json:"filename"`
+	Episode    *int    `json:"episode,omitempty"`
+	From       float64 `json:"from"`
+	To         float64 `json:"to"`
+	Similarity float64 `json:"similarity"`
+	Video      string  `json:"video"`
+	Image      string  `json:"image"`
 }
 
-func NewAnimeService(anilistClient *anilist.Client) AnimeService {
+type AnimeIdentificationListResponse struct {
+	Data []AnimeIdentificationResponse `json:"data"`
+}
+
+type animeService struct {
+	anilistClient  *anilist.Client
+	tracemoeClient *tracemoe.Client
+}
+
+func NewAnimeService(
+	anilistClient *anilist.Client,
+	tracemoeClient *tracemoe.Client,
+) AnimeService {
 	return &animeService{
-		anilistClient: anilistClient,
+		anilistClient:  anilistClient,
+		tracemoeClient: tracemoeClient,
 	}
 }
 
@@ -180,6 +206,42 @@ func (s *animeService) GetAnime(
 	response := mapAnime(*result)
 
 	return &response, nil
+}
+
+func (s *animeService) IdentifyAnime(
+	ctx context.Context,
+	imageURL string,
+) (*AnimeIdentificationListResponse, error) {
+	result, err := s.tracemoeClient.Search(
+		ctx,
+		imageURL,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	data := make(
+		[]AnimeIdentificationResponse,
+		0,
+		len(result.Result),
+	)
+
+	for _, item := range result.Result {
+		data = append(data, AnimeIdentificationResponse{
+			AnilistID:  item.AnilistID,
+			Filename:   item.Filename,
+			Episode:    item.Episode,
+			From:       item.From,
+			To:         item.To,
+			Similarity: item.Similarity,
+			Video:      item.Video,
+			Image:      item.Image,
+		})
+	}
+
+	return &AnimeIdentificationListResponse{
+		Data: data,
+	}, nil
 }
 
 func mapAnime(anime anilist.Anime) AnimeResponse {

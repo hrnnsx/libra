@@ -47,6 +47,7 @@ func (s *Server) RegisterRoutes() http.Handler {
 		animes.GET("", s.animeHandler.BrowseAnime)
 		animes.GET("/search", s.animeHandler.SearchAnime)
 		animes.GET("/:external_id", s.animeHandler.GetAnime)
+		animes.POST("/identify", s.animeHandler.IdentifyAnime)
 	}
 
 	// library
@@ -71,6 +72,10 @@ func (s *Server) RegisterRoutes() http.Handler {
 		groups.GET("/:id", s.groupHandler.GetGroup)
 		groups.PATCH("/:id", s.groupHandler.UpdateGroup)
 		groups.DELETE("/:id", s.groupHandler.DeleteGroup)
+
+		groups.POST("/:id/animes", s.groupLibraryAnimeHandler.AddAnime)
+		groups.GET("/:id/animes", s.groupLibraryAnimeHandler.GetAnimes)
+		groups.DELETE("/:id/animes/:library_anime_id", s.groupLibraryAnimeHandler.DeleteAnime)
 	}
 
 	return r
