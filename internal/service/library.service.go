@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"strconv"
+	"time"
 
 	"github.com/hrnnsx/libra/external/anilist"
 	"github.com/hrnnsx/libra/internal/model"
@@ -25,6 +26,30 @@ type LibraryService interface {
 		ctx context.Context,
 		userID int64,
 	) ([]model.LibraryAnime, error)
+
+	GetAnime(
+		ctx context.Context,
+		userID int64,
+		id int64,
+	) (*model.LibraryAnime, error)
+
+	UpdateAnime(
+		ctx context.Context,
+		userID int64,
+		id int64,
+		status *string,
+		currentEpisode *int,
+		rating *float64,
+		notes *string,
+		startedAt *string,
+		completedAt *string,
+	) (*model.LibraryAnime, error)
+
+	DeleteAnime(
+		ctx context.Context,
+		userID int64,
+		id int64,
+	) error
 }
 
 type libraryService struct {
@@ -140,4 +165,95 @@ func getAnimeTitle(anime *anilist.Anime) string {
 	}
 
 	return anime.Title.Native
+}
+
+func (s *libraryService) GetAnime(
+	ctx context.Context,
+	userID int64,
+	id int64,
+) (*model.LibraryAnime, error) {
+	return s.libraryAnimeRepository.FindByIDAndUser(
+		id,
+		userID,
+	)
+}
+
+func (s *libraryService) UpdateAnime(
+	ctx context.Context,
+	userID int64,
+	id int64,
+	status *string,
+	currentEpisode *int,
+	rating *float64,
+	notes *string,
+	startedAt *string,
+	completedAt *string,
+) (*model.LibraryAnime, error) {
+
+	libraryAnime, err := s.libraryAnimeRepository.FindByIDAndUser(
+		id,
+		userID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if status != nil {
+		libraryAnime.Status = *status
+	}
+
+	if currentEpisode != nil {
+		libraryAnime.CurrentEpisode = *currentEpisode
+	}
+
+	if rating != nil {
+		libraryAnime.Rating = rating
+	}
+
+	if notes != nil {
+		libraryAnime.Notes = notes
+	}
+
+	if startedAt != nil {
+		parsed, err := time.Parse(time.RFC3339, *startedAt)
+
+		if err != nil {
+			return nil, err
+		}
+
+		libraryAnime.StartedAt = &parsed
+	}
+
+	if completedAt != nil {
+		parsed, err := time.Parse(time.RFC3339, *completedAt)
+
+		if err != nil {
+			return nil, err
+		}
+
+		libraryAnime.CompletedAt = &parsed
+	}
+
+	if err := s.libraryAnimeRepository.Update(
+		libraryAnime,
+	); err != nil {
+		return nil, err
+	}
+
+	return s.libraryAnimeRepository.FindByIDAndUser(
+		id,
+		userID,
+	)
+}
+
+func (s *libraryService) DeleteAnime(
+	ctx context.Context,
+	userID int64,
+	id int64,
+) error {
+	return s.libraryAnimeRepository.Delete(
+		id,
+		userID,
+	)
 }

@@ -50,11 +50,15 @@ func (s *Server) RegisterRoutes() http.Handler {
 	}
 
 	// library
-	library := r.Group("/library")
+	library := r.Group("/me/library")
 	library.Use(middleware.AuthMiddleware())
 	{
-		library.POST("/animes", s.libraryHandler.AddAnime)
-		library.GET("/animes", s.libraryHandler.GetLibrary)
+		library.POST("/", s.libraryHandler.AddAnime)
+		library.GET("/", s.libraryHandler.GetLibrary)
+
+		library.GET("/:id", s.libraryHandler.GetAnime)
+		library.PATCH("/:id", s.libraryHandler.UpdateAnime)
+		library.DELETE("/:id", s.libraryHandler.DeleteAnime)
 	}
 
 	return r

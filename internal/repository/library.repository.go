@@ -22,8 +22,22 @@ type LibraryAnimeRepository interface {
 		userID int64,
 	) ([]model.LibraryAnime, error)
 
+	FindByIDAndUser(
+		id int64,
+		userID int64,
+	) (*model.LibraryAnime, error)
+
 	Create(
 		libraryAnime *model.LibraryAnime,
+	) error
+
+	Update(
+		libraryAnime *model.LibraryAnime,
+	) error
+
+	Delete(
+		id int64,
+		userID int64,
 	) error
 }
 
@@ -84,8 +98,78 @@ func (r *libraryAnimeRepository) FindByUser(
 	return libraryAnimes, nil
 }
 
+func (r *libraryAnimeRepository) FindByIDAndUser(
+	id int64,
+	userID int64,
+) (*model.LibraryAnime, error) {
+	var libraryAnime model.LibraryAnime
+
+	err := r.db.
+		Preload("Anime").
+		Where(
+			"id = ? AND user_id = ?",
+			id,
+			userID,
+		).
+		First(&libraryAnime).
+		Error
+
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, ErrLibraryAnimeNotFound
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &libraryAnime, nil
+}
+
 func (r *libraryAnimeRepository) Create(
 	libraryAnime *model.LibraryAnime,
 ) error {
 	return r.db.Create(libraryAnime).Error
+}
+
+func (r *libraryAnimeRepository) Update(
+	libraryAnime *model.LibraryAnime,
+) error {
+	return r.db.
+		Model(&model.LibraryAnime{}).
+		Where(
+			"id = ? AND user_id = ?",
+			libraryAnime.ID,
+			libraryAnime.UserID,
+		).
+		Updates(map[string]interface{}{
+			"status":          libraryAnime.Status,
+			"current_episode": libraryAnime.CurrentEpisode,
+			"rating":          libraryAnime.Rating,
+			"notes":           libraryAnime.Notes,
+			"started_at":      libraryAnime.StartedAt,
+			"completed_at":    libraryAnime.CompletedAt,
+		}).Error
+}
+
+func (r *libraryAnimeRepository) Delete(
+	id int64,
+	userID int64,
+) error {
+	result := r.db.
+		Where(
+			"id = ? AND user_id = ?",
+			id,
+			userID,
+		).
+		Delete(&model.LibraryAnime{})
+
+	if result.Error != nil {
+		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		return ErrLibraryAnimeNotFound
+	}
+
+	return nil
 }
