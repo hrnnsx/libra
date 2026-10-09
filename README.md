@@ -5,6 +5,9 @@ Libra is a RESTful API for managing a personal anime library. It allows users to
 
 The application integrates with AniList for anime data and trace.moe for anime scene identification.
 
+
+[LIVE API PREVIEW](libra-production-e912.up.railway.app)
+
 ## Features
 
 ### Authentication and User Management
