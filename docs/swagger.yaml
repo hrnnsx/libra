@@ -1,0 +1,1095 @@
+basePath: /
+definitions:
+  handler.AddGroupAnimeRequest:
+    properties:
+      library_anime_id:
+        minimum: 1
+        type: integer
+    required:
+    - library_anime_id
+    type: object
+  handler.AddLibraryAnimeRequest:
+    properties:
+      external_id:
+        type: string
+    required:
+    - external_id
+    type: object
+  handler.AuthResponse:
+    properties:
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/handler.UserResponse'
+    type: object
+  handler.CreateGroupRequest:
+    properties:
+      description:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - name
+    type: object
+  handler.IdentifyAnimeRequest:
+    properties:
+      url:
+        type: string
+    required:
+    - url
+    type: object
+  handler.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  handler.RegisterRequest:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      password:
+        minLength: 8
+        type: string
+      username:
+        maxLength: 50
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
+    - username
+    type: object
+  handler.UpdateGroupRequest:
+    properties:
+      description:
+        type: string
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+    type: object
+  handler.UpdateLibraryAnimeRequest:
+    properties:
+      completed_at:
+        type: string
+      current_episode:
+        type: integer
+      notes:
+        type: string
+      rating:
+        type: number
+      started_at:
+        type: string
+      status:
+        type: string
+    type: object
+  handler.UpdateProfileRequest:
+    properties:
+      email:
+        maxLength: 255
+        type: string
+      username:
+        maxLength: 50
+        minLength: 3
+        type: string
+    type: object
+  handler.UserResponse:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      updated_at:
+        type: string
+      username:
+        type: string
+    type: object
+  service.AnimeIdentificationListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/service.AnimeIdentificationResponse'
+        type: array
+    type: object
+  service.AnimeIdentificationResponse:
+    properties:
+      anilist_id:
+        type: integer
+      episode:
+        type: integer
+      filename:
+        type: string
+      from:
+        type: number
+      image:
+        type: string
+      similarity:
+        type: number
+      to:
+        type: number
+      video:
+        type: string
+    type: object
+  service.AnimeListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/service.AnimeResponse'
+        type: array
+      pagination:
+        $ref: '#/definitions/service.Pagination'
+    type: object
+  service.AnimeResponse:
+    properties:
+      episodes:
+        type: integer
+      external_id:
+        type: string
+      format:
+        type: string
+      genres:
+        items:
+          type: string
+        type: array
+      image_url:
+        type: string
+      score:
+        type: integer
+      season:
+        type: string
+      season_year:
+        type: integer
+      status:
+        type: string
+      synopsis:
+        type: string
+      title:
+        $ref: '#/definitions/service.AnimeTitle'
+    type: object
+  service.AnimeTitle:
+    properties:
+      english:
+        type: string
+      native:
+        type: string
+      romaji:
+        type: string
+    type: object
+  service.Pagination:
+    properties:
+      has_next_page:
+        type: boolean
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: REST API untuk personal anime library.
+  title: Libra - Anime Library API
+  version: "1.0"
+paths:
+  /animes:
+    get:
+      description: Get a paginated list of popular anime.
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        maximum: 50
+        minimum: 1
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.AnimeListResponse'
+        "400":
+          description: Invalid pagination parameters
+          schema:
+            additionalProperties: true
+            type: object
+        "502":
+          description: External API error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Browse anime
+      tags:
+      - Anime
+  /animes/{external_id}:
+    get:
+      description: Get anime details by AniList external ID.
+      parameters:
+      - description: AniList anime ID
+        in: path
+        name: external_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid external ID
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Anime not found
+          schema:
+            additionalProperties: true
+            type: object
+        "502":
+          description: External API error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Get anime detail
+      tags:
+      - Anime
+  /animes/identify:
+    post:
+      consumes:
+      - application/json
+      description: Identify an anime scene from an image URL using trace.moe.
+      parameters:
+      - description: Image URL
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.IdentifyAnimeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.AnimeIdentificationListResponse'
+        "400":
+          description: Invalid image URL
+          schema:
+            additionalProperties: true
+            type: object
+        "502":
+          description: External API error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Identify anime from image
+      tags:
+      - Anime
+  /animes/search:
+    get:
+      description: Search anime by title, external ID, season, year, genre, status,
+        or format.
+      parameters:
+      - description: Anime title
+        in: query
+        name: title
+        type: string
+      - description: AniList anime ID
+        in: query
+        name: external_id
+        type: string
+      - description: Season
+        enum:
+        - WINTER
+        - SPRING
+        - SUMMER
+        - FALL
+        in: query
+        name: season
+        type: string
+      - description: Season year
+        in: query
+        name: season_year
+        type: integer
+      - description: Anime genre
+        in: query
+        name: genre
+        type: string
+      - description: Anime status
+        enum:
+        - FINISHED
+        - AIRING
+        - NOT_YET_RELEASED
+        - CANCELLED
+        in: query
+        name: status
+        type: string
+      - description: Anime format
+        enum:
+        - TV
+        - TV_SHORT
+        - MOVIE
+        - SPECIAL
+        - OVA
+        - ONA
+        - MUSIC
+        in: query
+        name: format
+        type: string
+      - default: 1
+        description: Page number
+        in: query
+        minimum: 1
+        name: page
+        type: integer
+      - default: 20
+        description: Items per page
+        in: query
+        maximum: 50
+        minimum: 1
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/service.AnimeListResponse'
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "502":
+          description: External API error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Search anime
+      tags:
+      - Anime
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate a user and return an authentication token.
+      parameters:
+      - description: Login request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/handler.AuthResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid credentials
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login user
+      tags:
+      - Auth
+  /auth/register:
+    post:
+      consumes:
+      - application/json
+      description: Create a new user account and return an authentication token.
+      parameters:
+      - description: Register request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/handler.AuthResponse'
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Username or email already exists
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register user
+      tags:
+      - Auth
+  /me/groups:
+    get:
+      description: Get all anime groups belonging to the authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Groups retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user's groups
+      tags:
+      - Groups
+    post:
+      consumes:
+      - application/json
+      description: Create a new anime group for the authenticated user.
+      parameters:
+      - description: Create group request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.CreateGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Group created successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Create a group
+      tags:
+      - Groups
+  /me/groups/{id}:
+    delete:
+      description: Delete a group belonging to the authenticated user.
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Group deleted successfully
+        "400":
+          description: Invalid group ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Group not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Delete a group
+      tags:
+      - Groups
+    get:
+      description: Get a specific group belonging to the authenticated user.
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Group retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid group ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Group not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get group detail
+      tags:
+      - Groups
+    patch:
+      consumes:
+      - application/json
+      description: Update the name or description of a group belonging to the authenticated
+        user.
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update group request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateGroupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Group updated successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Group not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update a group
+      tags:
+      - Groups
+  /me/groups/{id}/animes:
+    get:
+      description: Get all library anime assigned to a specific group.
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Group anime retrieved successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid group ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Group not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get anime in group
+      tags:
+      - Group Anime
+    post:
+      consumes:
+      - application/json
+      description: Add an anime from the user's library to a group.
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Library anime to add
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.AddGroupAnimeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Anime added to group
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Group or library anime not found
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Anime already exists in group
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add anime to group
+      tags:
+      - Group Anime
+  /me/groups/{id}/animes/{library_anime_id}:
+    delete:
+      description: Remove an anime from a group without deleting it from the user's
+        library.
+      parameters:
+      - description: Group ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Library anime ID
+        in: path
+        name: library_anime_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Anime removed from group
+        "400":
+          description: Invalid group ID or library anime ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Group or anime in group not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remove anime from group
+      tags:
+      - Group Anime
+  /me/library/:
+    get:
+      description: Get all anime in the authenticated user's library.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get user's anime library
+      tags:
+      - Library
+    post:
+      consumes:
+      - application/json
+      description: Add an anime from AniList to the authenticated user's library.
+      parameters:
+      - description: Anime to add
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.AddLibraryAnimeRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Anime not found
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Anime already exists in library
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Add anime to library
+      tags:
+      - Library
+  /me/library/{id}:
+    delete:
+      description: Remove an anime from the authenticated user's library.
+      parameters:
+      - description: Library anime ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: Anime removed successfully
+        "400":
+          description: Invalid library anime ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Anime not found in library
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Remove anime from library
+      tags:
+      - Library
+    get:
+      description: Get a specific anime from the authenticated user's library.
+      parameters:
+      - description: Library anime ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid library anime ID
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Anime not found in library
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get library anime
+      tags:
+      - Library
+    patch:
+      consumes:
+      - application/json
+      description: Update the user's anime status, episode progress, rating, notes,
+        or dates.
+      parameters:
+      - description: Library anime ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Update library anime request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateLibraryAnimeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: Anime not found in library
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update library anime
+      tags:
+      - Library
+  /users/me:
+    get:
+      description: Get the profile of the currently authenticated user.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user profile
+      tags:
+      - Users
+    patch:
+      consumes:
+      - application/json
+      description: Update the username and/or email of the currently authenticated
+        user.
+      parameters:
+      - description: Update profile request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/handler.UpdateProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid request body
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Invalid token
+          schema:
+            additionalProperties: true
+            type: object
+        "404":
+          description: User not found
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Username or email already exists
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal server error
+          schema:
+            additionalProperties: true
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Update current user profile
+      tags:
+      - Users
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

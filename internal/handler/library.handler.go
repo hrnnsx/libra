@@ -36,6 +36,21 @@ type UpdateLibraryAnimeRequest struct {
 	CompletedAt    *string  `json:"completed_at"`
 }
 
+// AddAnime godoc
+// @Summary Add anime to library
+// @Description Add an anime from AniList to the authenticated user's library.
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body AddLibraryAnimeRequest true "Anime to add"
+// @Success 201 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid request body"
+// @Failure 401 {object} map[string]interface{} "Invalid token"
+// @Failure 404 {object} map[string]interface{} "Anime not found"
+// @Failure 409 {object} map[string]interface{} "Anime already exists in library"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /me/library/ [post]
 func (h *LibraryHandler) AddAnime(c *gin.Context) {
 	var request AddLibraryAnimeRequest
 
@@ -114,6 +129,16 @@ func (h *LibraryHandler) AddAnime(c *gin.Context) {
 	})
 }
 
+// GetLibrary godoc
+// @Summary Get user's anime library
+// @Description Get all anime in the authenticated user's library.
+// @Tags Library
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{} "Invalid token"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /me/library/ [get]
 func (h *LibraryHandler) GetLibrary(c *gin.Context) {
 	userID, exists := c.Get("user_id")
 
@@ -159,6 +184,19 @@ func (h *LibraryHandler) GetLibrary(c *gin.Context) {
 	})
 }
 
+// GetAnime godoc
+// @Summary Get library anime
+// @Description Get a specific anime from the authenticated user's library.
+// @Tags Library
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Library anime ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid library anime ID"
+// @Failure 401 {object} map[string]interface{} "Invalid token"
+// @Failure 404 {object} map[string]interface{} "Anime not found in library"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /me/library/{id} [get]
 func (h *LibraryHandler) GetAnime(c *gin.Context) {
 	id, err := strconv.ParseInt(
 		c.Param("id"),
@@ -234,6 +272,21 @@ func (h *LibraryHandler) GetAnime(c *gin.Context) {
 	})
 }
 
+// UpdateAnime godoc
+// @Summary Update library anime
+// @Description Update the user's anime status, episode progress, rating, notes, or dates.
+// @Tags Library
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Library anime ID"
+// @Param request body UpdateLibraryAnimeRequest true "Update library anime request"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Invalid token"
+// @Failure 404 {object} map[string]interface{} "Anime not found in library"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /me/library/{id} [patch]
 func (h *LibraryHandler) UpdateAnime(c *gin.Context) {
 	id, err := strconv.ParseInt(
 		c.Param("id"),
@@ -403,6 +456,19 @@ func isValidLibraryStatus(status string) bool {
 	}
 }
 
+// DeleteAnime godoc
+// @Summary Remove anime from library
+// @Description Remove an anime from the authenticated user's library.
+// @Tags Library
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Library anime ID"
+// @Success 204 "Anime removed successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid library anime ID"
+// @Failure 401 {object} map[string]interface{} "Invalid token"
+// @Failure 404 {object} map[string]interface{} "Anime not found in library"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /me/library/{id} [delete]
 func (h *LibraryHandler) DeleteAnime(c *gin.Context) {
 	id, err := strconv.ParseInt(
 		c.Param("id"),

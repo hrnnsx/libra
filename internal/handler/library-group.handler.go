@@ -26,6 +26,22 @@ type AddGroupAnimeRequest struct {
 	LibraryAnimeID int64 `json:"library_anime_id" binding:"required,min=1"`
 }
 
+// AddAnime godoc
+// @Summary Add anime to group
+// @Description Add an anime from the user's library to a group.
+// @Tags Group Anime
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Group ID"
+// @Param request body AddGroupAnimeRequest true "Library anime to add"
+// @Success 201 {object} map[string]interface{} "Anime added to group"
+// @Failure 400 {object} map[string]interface{} "Invalid request"
+// @Failure 401 {object} map[string]interface{} "Invalid token"
+// @Failure 404 {object} map[string]interface{} "Group or library anime not found"
+// @Failure 409 {object} map[string]interface{} "Anime already exists in group"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /me/groups/{id}/animes [post]
 func (h *GroupLibraryAnimeHandler) AddAnime(c *gin.Context) {
 	groupID, err := strconv.ParseInt(
 		c.Param("id"),
@@ -138,6 +154,19 @@ func (h *GroupLibraryAnimeHandler) AddAnime(c *gin.Context) {
 	})
 }
 
+// GetAnimes godoc
+// @Summary Get anime in group
+// @Description Get all library anime assigned to a specific group.
+// @Tags Group Anime
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Group ID"
+// @Success 200 {object} map[string]interface{} "Group anime retrieved successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid group ID"
+// @Failure 401 {object} map[string]interface{} "Invalid token"
+// @Failure 404 {object} map[string]interface{} "Group not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /me/groups/{id}/animes [get]
 func (h *GroupLibraryAnimeHandler) GetAnimes(c *gin.Context) {
 	groupID, err := strconv.ParseInt(
 		c.Param("id"),
@@ -213,6 +242,20 @@ func (h *GroupLibraryAnimeHandler) GetAnimes(c *gin.Context) {
 	})
 }
 
+// DeleteAnime godoc
+// @Summary Remove anime from group
+// @Description Remove an anime from a group without deleting it from the user's library.
+// @Tags Group Anime
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Group ID"
+// @Param library_anime_id path int true "Library anime ID"
+// @Success 204 "Anime removed from group"
+// @Failure 400 {object} map[string]interface{} "Invalid group ID or library anime ID"
+// @Failure 401 {object} map[string]interface{} "Invalid token"
+// @Failure 404 {object} map[string]interface{} "Group or anime in group not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /me/groups/{id}/animes/{library_anime_id} [delete]
 func (h *GroupLibraryAnimeHandler) DeleteAnime(c *gin.Context) {
 	groupID, err := strconv.ParseInt(
 		c.Param("id"),

@@ -24,6 +24,17 @@ type UpdateProfileRequest struct {
 	Email    *string `json:"email" binding:"omitempty,email,max=255"`
 }
 
+// GetProfile godoc
+// @Summary Get current user profile
+// @Description Get the profile of the currently authenticated user.
+// @Tags Users
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string]interface{}
+// @Failure 401 {object} map[string]interface{} "Invalid token"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /users/me [get]
 func (h *UserHandler) GetProfile(c *gin.Context) {
 	userIDValue, exists := c.Get("user_id")
 	if !exists {
@@ -73,6 +84,21 @@ func (h *UserHandler) GetProfile(c *gin.Context) {
 	})
 }
 
+// UpdateProfile godoc
+// @Summary Update current user profile
+// @Description Update the username and/or email of the currently authenticated user.
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UpdateProfileRequest true "Update profile request"
+// @Success 200 {object} map[string]interface{}
+// @Failure 400 {object} map[string]interface{} "Invalid request body"
+// @Failure 401 {object} map[string]interface{} "Invalid token"
+// @Failure 404 {object} map[string]interface{} "User not found"
+// @Failure 409 {object} map[string]interface{} "Username or email already exists"
+// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Router /users/me [patch]
 func (h *UserHandler) UpdateProfile(c *gin.Context) {
 	userIDValue, exists := c.Get("user_id")
 	if !exists {

@@ -37,6 +37,14 @@ func gracefulShutdown(apiServer *http.Server, done chan bool) {
 	done <- true
 }
 
+// @title Libra - Anime Library API
+// @version 1.0
+// @description REST API untuk personal anime library.
+// @host localhost:8080
+// @BasePath /
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 
 	server := server.NewServer()

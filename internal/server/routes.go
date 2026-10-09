@@ -6,6 +6,10 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/hrnnsx/libra/internal/middleware"
+
+	_ "github.com/hrnnsx/libra/docs"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func (s *Server) RegisterRoutes() http.Handler {
@@ -20,9 +24,11 @@ func (s *Server) RegisterRoutes() http.Handler {
 
 	//* NOTES: ada kemungkinan untuk penambahan role, jadi sementara menggunakan multiple routing chains
 
-	// health
+	// health + docs
 	r.GET("/", s.HelloWorldHandler)
 	r.GET("/health", s.healthHandler)
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	protected := r.Group("")
 
