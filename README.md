@@ -350,6 +350,38 @@ API endpoint:
 https://api.trace.moe/search
 ```
 
+
+## Postman Collection
+
+A Postman collection is provided to simplify API testing and development.
+
+### Import the Collection
+
+1. Open Postman.
+2. Click **Import**.
+3. Select the collection file located at `documentation/postman/Libra.postman_collection.json`.
+4. If an environment file is provided, import `documentation/postman/Libra.postman_environment.json` as well.
+
+### Configuration
+
+Configure the following environment variables in Postman:
+
+| Variable | Example Value | Description |
+|---|---|---|
+| `base_url` | `http://localhost:8080` | Base URL of the running API |
+| `token` | Empty initially | JWT access token obtained after login |
+
+Update the variable values according to your local environment.
+
+### Testing Authenticated Endpoints
+
+1. Start the Libra API server.
+2. Register a user or log in using the authentication endpoints.
+3. Copy the returned JWT access token into the `token` environment variable.
+4. Use the collection to test authenticated endpoints, including user profiles, personal libraries, and groups.
+
+Ensure that the API server and database are configured before running the requests.
+
 ## Development
 
 Download dependencies:
